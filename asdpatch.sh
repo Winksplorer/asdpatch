@@ -20,7 +20,7 @@ elif [ "$1" == "-di" ]; then
   echo "Skipping installation of sg3-utils..."
 fi
 
-if [ $(whoami) != "root" && "$1" != "-nr" ]; then
+if [ $(whoami) != "root" ] && [ "$1" != "-nr" ]; then
   echo "You must be root to patch the superdrive"
   patch_err 0
 fi
