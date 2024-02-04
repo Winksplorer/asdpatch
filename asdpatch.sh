@@ -2,7 +2,7 @@
 
 echo "Apple SuperDrive Patcher (asdpatch) v1.0"
 
-if [ whoami != "root" ]; then
+if [ $(whoami) != "root" ]; then
   echo "You must be root to patch the superdrive"
   exit 1
 fi
@@ -47,7 +47,7 @@ fi
 
 echo "Patching system..."
 
-cat <<- EOF | sudo tee  /etc/udev/rules.d/90-mac-superdrive.rules > /dev/null
+cat <<- EOF | tee  /etc/udev/rules.d/90-mac-superdrive.rules > /dev/null
 # Initialise Apple SuperDrive
 ACTION=="add", ATTRS{idProduct}=="1500", ATTRS{idVendor}=="05ac", DRIVERS=="usb", RUN+="/usr/bin/sg_raw %r/sr%n EA 00 00 00 00 00 01"
 EOF
