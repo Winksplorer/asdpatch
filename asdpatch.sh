@@ -1,48 +1,58 @@
 #!/bin/bash
 
+patch_err() {
+    echo "PATCH FAILED"
+    if [ $1 -eq 0 ]; then
+        echo "CODE 0: You must be root to patch the superdrive"
+        echo "You can use -nr flag to attempt to run the script without root privileges, but it will likely fail to patch the superdrive."
+    elif [ $1 -eq 1 ]; then
+        echo "CODE 1: No package manager found. Please install sg3-utils manually."
+        echo "You can use -di flag to skip installation of sg3-utils, instead you can install it manually before running asdpatch."
+    fi
+}
+
 echo "Apple SuperDrive Patcher (asdpatch) v1.0"
 
-if [ $(whoami) != "root" ]; then
+# Check for flags
+if [ "$1" == "-nr" ]; then
+  echo "Running without root privileges..."
+elif [ "$1" == "-di" ]; then
+  echo "Skipping installation of sg3-utils..."
+fi
+
+if [ $(whoami) != "root" && "$1" != "-nr" ]; then
   echo "You must be root to patch the superdrive"
-  exit 1
+  patch_err 0
+fi
+
+# Check if system is already patched
+if [ -f /etc/udev/rules.d/90-mac-superdrive.rules ]; then
+  echo "Superdrive was already patched"
+  exit 0
 fi
 
 echo "Installing sg3-utils..."
-# Check if sg3 is already installed
-if [ -x "$(command -v sg_raw)" ]; then
-  echo "sg3-utils is already installed"
-else
-    echo
-    echo "Select your package manager:"
-    echo "1) apt-get"
-    echo "2) apk"
-    echo "3) pacman"
-    echo "4) yum"
-    echo "5) dnf"
-
-    read pm
-
-    case $pm in
-    1)
-        apt-get install sg3-utils
-        ;;
-    2)
-        apk add sg3-utils
-        ;;
-    3)
-        pacman -S sg3-utils
-        ;;
-    4)
-        yum install sg3-utils
-        ;;
-    5)
-        dnf install sg3-utils
-        ;;
-    *)
-        echo "Invalid option"
-        exit 1
-        ;;
-    esac
+if [ "$1" != "-di" ]; then
+    # Check if sg3 is already installed
+    if [ -x "$(command -v sg_raw)" ]; then
+    echo "sg3-utils is already installed"
+    else
+        # Choose which package manager to use, by using command -v to check if the package manager is installed
+        if [ -x "$(command -v apt)" ]; then
+            apt install sg3-utils -y
+        elif [ -x "$(command -v dnf)" ]; then
+            dnf install sg3-utils -y
+        elif [ -x "$(command -v yum)" ]; then
+            yum install sg3-utils -y
+        elif [ -x "$(command -v pacman)" ]; then
+            pacman -S sg3_utils --noconfirm
+        elif [ -x "$(command -v apk)" ]; then
+            apk add sg3-utils
+        else
+            echo "No package manager found. Please install sg3-utils manually."
+            patch_err 1
+        fi
+    fi
 fi
 
 echo "Patching system..."
