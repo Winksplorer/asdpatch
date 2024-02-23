@@ -9,6 +9,7 @@ patch_err() {
         echo "CODE 1: No package manager found. Please install sg3-utils manually."
         echo "You can use -di flag to skip installation of sg3-utils, instead you can install it manually before running asdpatch."
     fi
+    exit 1
 }
 
 echo "Apple SuperDrive Patcher (asdpatch) v1.0"
